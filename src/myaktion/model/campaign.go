@@ -1,6 +1,7 @@
 package model
 
 type Campaign struct {
+	ID                 uint
 	Name               string
 	OrganizerName      string
 	TargetAmount       float64
