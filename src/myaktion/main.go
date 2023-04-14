@@ -5,11 +5,15 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/nidigeser/go-myaktion/src/myaktion/db"
 	"github.com/nidigeser/go-myaktion/src/myaktion/handler"
 	log "github.com/sirupsen/logrus"
 )
 
 func init() {
+	// ensure that logger is initialized before connecting to DB
+	defer db.Init()
+	// init logger
 	log.SetFormatter(&log.TextFormatter{})
 	log.SetReportCaller(true)
 	level, err := log.ParseLevel(os.Getenv("LOG_LEVEL"))

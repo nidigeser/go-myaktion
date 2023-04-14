@@ -1,25 +1,19 @@
 package service
 
 import (
-	"fmt"
+	"errors"
 
+	"github.com/nidigeser/go-myaktion/src/myaktion/db"
 	"github.com/nidigeser/go-myaktion/src/myaktion/model"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
-
-var (
-	campaignStore map[uint]*model.Campaign
-	actCampaignId uint = 1
-)
-
-func init() {
-	campaignStore = make(map[uint]*model.Campaign)
-}
 
 func CreateCampaign(campaign *model.Campaign) error {
-	campaign.ID = actCampaignId
-	campaignStore[actCampaignId] = campaign
-	actCampaignId += 1
+	result := db.DB.Create(campaign)
+	if result.Error != nil {
+		return result.Error
+	}
 	log.Infof("Successfully stored new campaign with ID %v in database.", campaign.ID)
 	log.Tracef("Stored: %v", campaign)
 	return nil
@@ -27,45 +21,56 @@ func CreateCampaign(campaign *model.Campaign) error {
 
 func GetCampaigns() ([]model.Campaign, error) {
 	var campaigns []model.Campaign
-	for _, campaign := range campaignStore {
-		// Note: *campaign does only create a shallow copy of the campaign, means the donation slice is still the same as for campaignStore
-		// Ok for this use-case as we're just serializing after usage
-		campaigns = append(campaigns, *campaign)
+	result := db.DB.Preload("Donations").Find(&campaigns)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	log.Tracef("Retrieved: %v", campaigns)
 	return campaigns, nil
 }
 
 func GetCampaign(id uint) (*model.Campaign, error) {
-	campaign := campaignStore[id]
-	if campaign == nil {
-		return nil, fmt.Errorf("no campaign with ID %d", id)
+	var campaign model.Campaign
+	result := db.DB.Preload("Donations").First(&campaign, id)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	log.Tracef("Retrieved: %v", campaign)
-	return campaign, nil
+	return &campaign, nil
 }
 
 func UpdateCampaign(id uint, campaign *model.Campaign) (*model.Campaign, error) {
 	existingCampaign, err := GetCampaign(id)
-	if err != nil {
+	if existingCampaign == nil || err != nil {
 		return existingCampaign, err
 	}
 	existingCampaign.Name = campaign.Name
 	existingCampaign.OrganizerName = campaign.OrganizerName
 	existingCampaign.TargetAmount = campaign.TargetAmount
 	existingCampaign.DonationMinimum = campaign.DonationMinimum
+	existingCampaign.Account = campaign.Account
+	result := db.DB.Save(existingCampaign)
+	if result.Error != nil {
+		return nil, result.Error
+	}
 	entry := log.WithField("ID", id)
 	entry.Info("Successfully updated campaign.")
-	entry.Tracef("Updated: %v", campaign)
+	entry.Tracef("Updated: %v", existingCampaign)
 	return existingCampaign, nil
 }
 
 func DeleteCampaign(id uint) (*model.Campaign, error) {
 	campaign, err := GetCampaign(id)
-	if err != nil {
+	if campaign == nil || err != nil {
 		return campaign, err
 	}
-	delete(campaignStore, id)
+	result := db.DB.Delete(campaign)
+	if result.Error != nil {
+		return nil, result.Error
+	}
 	entry := log.WithField("ID", id)
 	entry.Info("Successfully deleted campaign.")
 	entry.Tracef("Deleted: %v", campaign)

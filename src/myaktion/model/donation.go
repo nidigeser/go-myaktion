@@ -11,6 +11,7 @@ const (
 
 type Donation struct {
 	gorm.Model
+	CampaignID       uint
 	Amount           float64 `gorm:"notNull;check:amount >= 1.0"`
 	DonorName        string  `gorm:"notNull;size:40"`
 	ReceiptRequested bool    `gorm:"notNull"`
