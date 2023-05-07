@@ -36,4 +36,10 @@ func main() {
 	router.HandleFunc("/campaigns/{id}", handler.DeleteCampaign).Methods("DELETE")
 	router.HandleFunc("/campaigns/{id}/donation", handler.AddDonation).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8000", router))
+
+	go monitortransactions()
+	err := http.ListenAndServe(":8000", router)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
