@@ -4,7 +4,7 @@ package banktransfer;
 
 import "google/protobuf/empty.proto";
 
-option go_package = "github.com/nidigeser/go-myaktion/src/myaktion/client/banktransfer";
+option go_package = "github.com/nidigeser/go-myaktion/src/banktransfer/grpc/banktransfer";
 
 service BankTransfer {
     rpc TransferMoney (Transaction) returns (google.protobuf.Empty) {}

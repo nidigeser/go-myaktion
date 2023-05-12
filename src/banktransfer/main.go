@@ -7,14 +7,11 @@ import (
 
 	"github.com/nidigeser/go-myaktion/src/banktransfer/grpc/banktransfer"
 	"github.com/nidigeser/go-myaktion/src/banktransfer/service"
-	"github.com/nidigeser/go-myaktion/src/myaktion/db"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
 func init() {
-	// ensure that logger is initialized before connecting to DB
-	defer db.Init()
 	// init logger
 	log.SetFormatter(&log.TextFormatter{})
 	log.SetReportCaller(true)

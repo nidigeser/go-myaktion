@@ -6,8 +6,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/nidigeser/go-myaktion/src/banktransfer/grpc/banktransfer"
 	"github.com/nidigeser/go-myaktion/src/myaktion/client"
+	"github.com/nidigeser/go-myaktion/src/myaktion/client/banktransfer"
 )
 
 func monitortransactions() {
